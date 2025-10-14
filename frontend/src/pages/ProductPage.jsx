@@ -5,22 +5,27 @@ import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { AppContext } from '../context/AppContext.jsx';
 
+// VERCEL DEPLOYMENT FIX:
+// Uses VITE_API_URL from .env.development for local testing (http://localhost:5000/api),
+// otherwise defaults to the Vercel-managed relative path ('/api') for production.
+const API_BASE = import.meta.env.VITE_API_URL || '/api';
+
 const ProductPage = () => {
     const { id } = useParams();
     const navigate = useNavigate();
     
-    // Get addToCart function from context
     const { addToCart } = useContext(AppContext); 
 
     const [product, setProduct] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
-    const [qty, setQty] = useState(1); // State for quantity
+    const [qty, setQty] = useState(1); 
 
     useEffect(() => {
         const fetchProduct = async () => {
             try {
-                const response = await axios.get(`http://localhost:5000/api/products/${id}`);
+                // Fetch product using the base URL
+                const response = await axios.get(`${API_BASE}/products/${id}`);
                 setProduct(response.data);
                 setLoading(false);
             } catch (err) {
@@ -32,21 +37,17 @@ const ProductPage = () => {
         fetchProduct();
     }, [id]);
 
-    // Handler to add item to cart and redirect
     const addToCartHandler = () => {
         if (product) {
-            // Passes the full product object and the selected quantity to context
             addToCart(product, Number(qty)); 
-            navigate('/cart'); // Redirect to cart page
+            navigate('/cart'); 
         }
     };
-
 
     if (loading) return <h2 style={styles.loading}>Loading Product Details...</h2>;
     if (error) return <h2 style={styles.error}>{error}</h2>;
     if (!product) return <h2 style={styles.error}>No product data available.</h2>;
     
-    // Calculate the available options for the quantity selector
     const qtyOptions = [...Array(product.countInStock).keys()].map(x => x + 1);
 
     return (
@@ -58,7 +59,6 @@ const ProductPage = () => {
                     <p style={styles.price}>Price: ${product.price.toFixed(2)}</p>
                     <p style={styles.description}>{product.description}</p>
                     
-                    {/* Quantity Selector */}
                     {product.countInStock > 0 && (
                         <div style={styles.qtyBox}>
                             <label style={styles.status}>Quantity:</label>
@@ -97,7 +97,6 @@ const ProductPage = () => {
 
 
 const styles = {
-    // BASE STYLES
     container: {
         maxWidth: '1000px',
         margin: '50px auto',
@@ -154,8 +153,6 @@ const styles = {
         paddingTop: '50px',
         color: '#d9534f',
     },
-    
-    // QUANTITY/CART STYLES
     qtyBox: {
         display: 'flex',
         alignItems: 'center',

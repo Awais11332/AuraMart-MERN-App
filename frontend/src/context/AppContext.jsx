@@ -3,6 +3,9 @@
 import React, { createContext, useReducer, useEffect } from 'react';
 import axios from 'axios';
 
+// VERCEL DEPLOYMENT FIX: Use relative path for API
+const API_URL = '/api';
+
 // 1. Initial State
 const initialState = {
     userInfo: localStorage.getItem('userInfo') 
@@ -87,7 +90,8 @@ export const AppProvider = ({ children }) => {
             };
 
             const { data } = await axios.post(
-                'http://localhost:5000/api/users/login',
+                // UPDATED: Uses the relative API_URL
+                `${API_URL}/users/login`,
                 { email, password },
                 config
             );

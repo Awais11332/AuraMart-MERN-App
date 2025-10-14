@@ -2,8 +2,12 @@
 
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
-// FIX: Using explicit .jsx extension for clarity/consistency (optional, but good practice)
-import ProductCard from '../components/ProductCard.jsx'; 
+import ProductCard from '../components/ProductCard.jsx';
+
+// VERCEL DEPLOYMENT FIX: 
+// Checks for the VITE_API_URL set in frontend/.env.development (for local testing).
+// Otherwise, it defaults to the Vercel-managed relative path ('/api') for production.
+const API_BASE = import.meta.env.VITE_API_URL || '/api'; 
 
 const HomePage = () => {
     const [products, setProducts] = useState([]);
@@ -13,22 +17,20 @@ const HomePage = () => {
     useEffect(() => {
         const fetchProducts = async () => {
             try {
-                // Connects to the Express backend API running on port 5000
-                const response = await axios.get('http://localhost:5000/api/products');
+                // Fetch products using the determined base URL (e.g., http://localhost:5000/api/products or /api/products)
+                const response = await axios.get(`${API_BASE}/products`); 
                 setProducts(response.data);
                 setLoading(false);
             } catch (err) {
-                // Display a specific error message if the fetch fails (e.g., if backend is down)
                 console.error("API Fetch Error:", err);
-                setError('Failed to fetch products from the server. Check if the backend (Port 5000) is running.');
+                setError('Failed to fetch products. Is the backend running on port 5000?');
                 setLoading(false);
             }
         };
 
         fetchProducts();
-    }, []); // Empty dependency array ensures this runs only once on mount
+    }, []); 
 
-    // Conditional Rendering based on state
     if (loading) return <h2>Loading products...</h2>;
     if (error) return <h2 style={{ color: 'red', textAlign: 'center' }}>Error: {error}</h2>;
 
@@ -36,13 +38,10 @@ const HomePage = () => {
         <div style={{ padding: '20px' }}>
             <h1>AuraMart Product Catalog</h1>
             <div style={styles.productsGrid}>
-                {/* Conditional rendering for empty array */}
                 {products.length === 0 ? (
                     <p style={{ fontSize: '1.2rem' }}>No products found. Please add products to your MongoDB.</p>
                 ) : (
-                    // Map through the fetched products
                     products.map((product) => (
-                        // Use product._id as the key for efficient list rendering
                         <ProductCard key={product._id} product={product} />
                     ))
                 )}
@@ -51,12 +50,11 @@ const HomePage = () => {
     );
 };
 
-// Simple inline styles for the grid layout
 const styles = {
     productsGrid: {
         display: 'flex',
         flexWrap: 'wrap',
-        gap: '20px', // Added gap for better spacing
+        gap: '20px', 
         justifyContent: 'center',
         paddingTop: '20px',
     }
